@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useState } from "react";
 import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
 

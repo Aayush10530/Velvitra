@@ -26,11 +26,10 @@ const AboutUs = () => {
       <div className="container-custom">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <span className="text-accent-foreground/70 uppercase tracking-wider text-sm font-medium fade-in">Our Story</span>
-          <h2 className="heading-lg mt-2 mb-6 fade-in">Heritage Luxury at Its Finest</h2>
+          <h2 className="heading-lg mt-2 mb-6 fade-in">Heritage & Luxury at Its Finest</h2>
           <div className="w-20 h-1 bg-accent mx-auto mb-8 fade-in"></div>
           <p className="text-lg fade-in">
-            Taj Heritage was founded by a team of passionate historians, travel enthusiasts, and local experts with a shared vision—to provide 
-            discerning travelers with an unparalleled experience of Agra's magnificent monuments.
+          Inspired by the timeless elegance of velvet trails and imperial journeys, Velvitra crafts experiences that echo the footsteps of royalty. Each journey is thoughtfully curated to blend history, luxury, and exclusivity, inviting you to walk where emperors once roamed and to discover the grandeur of a bygone era—reimagined for the discerning traveler.
           </p>
         </div>
 
@@ -49,7 +48,7 @@ const AboutUs = () => {
 
           <div className="relative h-[400px] overflow-hidden rounded-lg fade-in">
             <img 
-              src="/lovable-uploads/180c80d5-167b-4a09-901e-519cb9255112.png" 
+              src="/heritage-uploads/180c80d5-167b-4a09-901e-519cb9255112.png" 
               alt="Agra Fort at sunset" 
               className="w-full h-full object-cover"
             />

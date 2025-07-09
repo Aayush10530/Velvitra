@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import AuthModal from "./AuthModal";
 import { useAuth } from "@/context/AuthContext";
 
-const ThemedNavbar = () => {
+const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -57,15 +57,22 @@ const ThemedNavbar = () => {
     }
   }, [location]);
 
+  // Determine navbar visibility and animation
+  const isHomePage = location.pathname === '/';
+  const shouldShowNavbar = isHomePage ? showNavbar : true;
+  const navbarClasses = isHomePage 
+    ? `fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${
+        shouldShowNavbar 
+          ? 'opacity-100 translate-y-0' 
+          : 'opacity-0 -translate-y-full'
+      } ${isScrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-transparent"}`
+    : `fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+        isScrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-transparent"
+      }`;
+
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-          isScrolled
-            ? "bg-background/80 backdrop-blur-md shadow-sm"
-            : "bg-transparent"
-        }`}
-      >
+      <nav className={navbarClasses}>
         <div className="container-custom flex justify-between items-center py-4">
           <div className="flex flex-col">
             <Link to="/" className="text-3xl font-cinzel font-bold text-black">

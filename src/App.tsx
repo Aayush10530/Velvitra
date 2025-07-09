@@ -18,6 +18,7 @@ import MyBookingsPage from "./pages/MyBookingsPage";
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import HotelsPage from "./pages/HotelsPage";
 import BlogPage from "@/pages/BlogPage";
+import AdminAvailabilityPage from "./pages/AdminAvailabilityPage";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/my-bookings" element={<MyBookingsPage />} />
             <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
             <Route path="/blog" element={<BlogPage />} />
+            <Route path="/admin/availability" element={<AdminAvailabilityPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
