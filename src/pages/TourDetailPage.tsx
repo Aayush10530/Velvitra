@@ -13,15 +13,15 @@ const tourData = [
   {
     id: "taj-mahal-sunrise-tour",
     title: "Taj Mahal Sunrise Tour",
-    description: "Experience the magic of the Taj Mahal at dawn, when the first rays of sunlight illuminate the marble monument, creating a breathtaking golden glow.",
-    longDescription: "Enjoy a serene morning as you witness the Taj Mahal changing colors with the rising sun. This private tour provides ample time for photography and peaceful contemplation of this wonder of the world. Our expert guide will share detailed insights about the monument's history, architecture, and the love story behind its creation.",
+    description: "This tour is designed for travelers who want to experience the Taj Mahal at its most beautiful—sunrise—without spending extra days in Agra. Perfect for those with tight schedules or for visitors coming from New Delhi, this tour includes early morning entry, expert guiding, and the option to return to Delhi after lunch or by evening. Enjoy a seamless, comfortable journey and make the most of your limited time.",
+    longDescription: "Enjoy a serene morning as you witness the Taj Mahal changing colors with the rising sun. This private tour provides ample time for photography and peaceful contemplation of this wonder of the world. Our expert guide will share detailed insights about the monument's history, architecture, and the love story behind its creation. Ideal for travelers with limited time or those seeking a same-day return to New Delhi.",
     image: "/heritage-uploads/taj rise.jpg",
     rating: 4.9,
     reviews: 124,
     timing: "6:00 AM - 9:00 AM",
     accommodation: "Guide (25+ years of experience), Entry tickets, Personalized Ride Services",
     price: 179,
-    people: "1-3",
+    people: "5 adults and 3 kids",
     tags: ["best-seller"],
     highlights: [
       "Beat the crowds with early morning access",
@@ -29,8 +29,11 @@ const tourData = [
       "Expert historical commentary from our guides",
       "Perfect lighting conditions for photography",
       "Complimentary hotel pickup and drop-off",
-      "Small group size for personalized experience"
-    ]
+      "Ideal for travelers with limited time or those seeking a same-day return to New Delhi.",
+      "Seamless pickup and drop-off from Delhi or Agra, with flexible return options.",
+      "Experience the Taj Mahal at sunrise, the most magical time of day."
+    ],
+    priceDisplay: "$179 per person"
   },
   {
     id: "royal-mughal-heritage",
@@ -52,28 +55,6 @@ const tourData = [
       "Luxury air-conditioned transportation",
       "Skip-the-line entry tickets included",
       "Complimentary bottled water throughout the day"
-    ]
-  },
-  {
-    id: "taj-mahal-by-moonlight",
-    title: "Taj Mahal by Moonlight",
-    description: "Witness the ethereal beauty of the Taj Mahal under the moonlight during special night viewing sessions, a rare and magical experience.",
-    longDescription: "Experience the Taj Mahal in a completely different light - moonlight. This exclusive tour is available only on full moon nights and few days before and after. The marble mausoleum takes on an ethereal glow in the moonlight, creating a magical atmosphere that few tourists get to experience. Our guide will share stories and legends that add to the mystical experience.",
-    image: "/lovable-uploads/38db1722-ab1f-44d2-bfc1-95605b191003.png",
-    rating: 5.0,
-    reviews: 56,
-    timing: "8:30 PM - 10:30 PM (Available only on full moon nights)",
-    accommodation: "Special night entry permits, Expert guide, Luxury transfer service",
-    price: 220,
-    people: "1-4",
-    tags: [],
-    highlights: [
-      "Exclusive night viewing of the Taj Mahal",
-      "Mystical atmosphere under moonlight",
-      "Smaller crowds than daytime visits",
-      "Special night photography opportunities",
-      "Rare experience only available on select nights",
-      "Expert guidance on night photography techniques"
     ]
   },
   {
@@ -208,7 +189,7 @@ const TourDetailPage = () => {
                  </div>
                  <div className="flex items-center gap-2">
                      <DollarSign size={20} className="text-accent"/>
-                     <span>Price: ₹{tour.price} per person</span>
+                     <span>{tour.priceDisplay || `Price: $${tour.price} per person`}</span>
                  </div>
               </div>
 

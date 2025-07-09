@@ -66,21 +66,6 @@ const ToursPage = () => {
       ]
     },
     {
-      id: "taj-mahal-by-moonlight",
-      title: "Taj Mahal by Moonlight",
-      description: "Witness the ethereal beauty of the Taj Mahal under the moonlight during special night viewing sessions, a rare and magical experience.",
-      image: "/lovable-uploads/38db1722-ab1f-44d2-bfc1-95605b191003.png",
-      rating: 5.0,
-      reviews: 56,
-      price: 220,
-      highlights: [
-        "Exclusive night viewing of the Taj Mahal",
-        "Mystical atmosphere under moonlight",
-        "Smaller crowds than daytime visits",
-        "Special night photography opportunities"
-      ]
-    },
-    {
       id: "imperial-agra-day-tour",
       title: "Imperial Agra Day Tour",
       description: "Our most authentic experience visiting the two most iconic monuments of Agra with expert historical insights and plenty of time for photography.",

@@ -15,14 +15,14 @@ const galleryItems = [
   },
   {
     id: 2,
-    src: "/lovable-uploads/bda4c7b4-e8d4-44be-be79-7cae37c2cd37.png",
+    src: "/heritage-uploads/bda4c7b4-e8d4-44be-be79-7cae37c2cd37.png",
     alt: "Taj Mahal Garden View",
     caption: "The Taj Mahal viewed through lush gardens with vibrant greenery",
     category: "Taj Mahal"
   },
   {
     id: 3,
-    src: "/lovable-uploads/b0660bda-2876-4f0f-847c-90db3be621e0.png",
+    src: "/heritage-uploads/b0660bda-2876-4f0f-847c-90db3be621e0.png",
     alt: "Agra Fort Interior",
     caption: "Ornate latticework of Agra Fort interior",
     category: "Agra Fort",

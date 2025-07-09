@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Building2, Bed, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { fadeUp, staggerContainer, buttonHover, imageReveal, parallaxEffect } from "@/lib/animations";
+import { format } from "date-fns";
 
 const defaultRoomImage = "https://images.unsplash.com/photo-1618773928121-c32242e63f39";
 
@@ -97,14 +98,31 @@ const hotels: Hotel[] = [
 interface HotelSelectionProps {
   onHotelSelect: (hotelId: string, roomId: string, checkIn: Date, checkOut: Date, roomPrice: number) => void;
   onRemoveHotelStay: () => void;
+  checkIn?: Date | null;
 }
 
-const HotelSelection = ({ onHotelSelect, onRemoveHotelStay }: HotelSelectionProps) => {
+const HotelSelection = ({ onHotelSelect, onRemoveHotelStay, checkIn: propCheckIn }: HotelSelectionProps) => {
   const [selectedHotel, setSelectedHotel] = useState<string | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [checkIn, setCheckIn] = useState<Date>();
   const [checkOut, setCheckOut] = useState<Date>();
+  const [checkOutError, setCheckOutError] = useState<string | null>(null);
   const [hoveredRoom, setHoveredRoom] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (propCheckIn) {
+      setCheckOut(propCheckIn);
+    }
+  }, [propCheckIn]);
+
+  useEffect(() => {
+    if (selectedHotel && selectedRoom && propCheckIn && checkOut) {
+      const selectedHotelData = hotels.find(h => h.id === selectedHotel);
+      const selectedRoomData = selectedHotelData?.rooms.find(r => r.id === selectedRoom);
+      if (selectedRoomData) {
+        onHotelSelect(selectedHotel, selectedRoom, propCheckIn, checkOut, selectedRoomData.price);
+      }
+    }
+  }, [selectedHotel, selectedRoom, propCheckIn, checkOut]);
 
   const handleHotelSelect = (hotelId: string) => {
     setSelectedHotel(hotelId);
@@ -116,11 +134,11 @@ const HotelSelection = ({ onHotelSelect, onRemoveHotelStay }: HotelSelectionProp
   };
 
   const handleBooking = () => {
-    if (selectedHotel && selectedRoom && checkIn && checkOut) {
+    if (selectedHotel && selectedRoom && propCheckIn && checkOut) {
       const selectedHotelData = hotels.find(h => h.id === selectedHotel);
       const selectedRoomData = selectedHotelData?.rooms.find(r => r.id === selectedRoom);
       if (selectedRoomData) {
-        onHotelSelect(selectedHotel, selectedRoom, checkIn, checkOut, selectedRoomData.price);
+        onHotelSelect(selectedHotel, selectedRoom, propCheckIn, checkOut, selectedRoomData.price);
       }
     }
   };
@@ -149,7 +167,6 @@ const HotelSelection = ({ onHotelSelect, onRemoveHotelStay }: HotelSelectionProp
               onRemoveHotelStay();
               setSelectedHotel(null);
               setSelectedRoom(null);
-              setCheckIn(undefined);
               setCheckOut(undefined);
             }}
             className="transition-all duration-300 hover:shadow-lg"
@@ -165,26 +182,45 @@ const HotelSelection = ({ onHotelSelect, onRemoveHotelStay }: HotelSelectionProp
         variants={fadeUp}
       >
         <h4 className="text-sm font-medium">Select Dates</h4>
+        <div className="mb-2 text-xs text-gray-600 font-semibold">
+          Check-in is fixed to your selected tour date: {propCheckIn ? format(propCheckIn, "PPP") : "-"}
+        </div>
         <div className="w-full overflow-x-auto">
           <div className="min-w-[900px]">
             <Calendar
-              mode="range"
-              selected={{
-                from: checkIn,
-                to: checkOut
-              }}
-              onSelect={(range) => {
-                setCheckIn(range?.from);
-                setCheckOut(range?.to);
+              mode="single"
+              selected={checkOut}
+              onSelect={(date) => {
+                if (propCheckIn && date && date > propCheckIn) {
+                  setCheckOut(date);
+                  setCheckOutError(null);
+                  if (selectedHotel && selectedRoom) {
+                    const selectedHotelData = hotels.find(h => h.id === selectedHotel);
+                    const selectedRoomData = selectedHotelData?.rooms.find(r => r.id === selectedRoom);
+                    if (selectedRoomData) {
+                      onHotelSelect(selectedHotel, selectedRoom, propCheckIn, date, selectedRoomData.price);
+                    }
+                  }
+                } else if (date && propCheckIn && date <= propCheckIn) {
+                  setCheckOutError("Check-out must be after check-in (tour date)");
+                  setCheckOut(undefined);
+                }
               }}
               className="rounded-md border"
               numberOfMonths={3}
-              disabled={(date) => date < new Date()}
+              disabled={(date) => date < new Date() || (propCheckIn && date <= propCheckIn)}
+              modifiers={{
+                range: checkOut && propCheckIn ? { from: propCheckIn, to: checkOut } : undefined
+              }}
+              modifiersClassNames={{
+                range: "bg-accent/30 text-accent-foreground"
+              }}
             />
+            {checkOutError && <div className="text-red-500 text-xs mt-1">{checkOutError}</div>}
           </div>
         </div>
         <AnimatePresence>
-          {(checkIn || checkOut) && (
+          {(propCheckIn && checkOut) && (
             <motion.div 
               className="flex gap-4 text-sm"
               initial={{ opacity: 0, y: 10 }}
@@ -192,16 +228,16 @@ const HotelSelection = ({ onHotelSelect, onRemoveHotelStay }: HotelSelectionProp
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              {checkIn && (
+              {propCheckIn && (
                 <div>
                   <span className="font-medium">Check-in:</span>{" "}
-                  {checkIn.toLocaleDateString()}
+                  {format(propCheckIn, "PPP")}
                 </div>
               )}
               {checkOut && (
                 <div>
                   <span className="font-medium">Check-out:</span>{" "}
-                  {checkOut.toLocaleDateString()}
+                  {format(checkOut, "PPP")}
                 </div>
               )}
             </motion.div>
@@ -264,8 +300,8 @@ const HotelSelection = ({ onHotelSelect, onRemoveHotelStay }: HotelSelectionProp
                             handleRoomSelect(room.id);
                             const selectedHotelData = hotels.find(h => h.id === selectedHotel);
                             const selectedRoomData = selectedHotelData?.rooms.find(r => r.id === room.id);
-                            if (selectedRoomData && checkIn && checkOut) {
-                              onHotelSelect(selectedHotel!, room.id, checkIn, checkOut, selectedRoomData.price);
+                            if (selectedRoomData && propCheckIn && checkOut) {
+                              onHotelSelect(selectedHotel!, room.id, propCheckIn, checkOut, selectedRoomData.price);
                               toast.success(`Selected room: ${room.name} for $${selectedRoomData.price}`);
                             } else {
                               toast.error("Please select both check-in and check-out dates.");

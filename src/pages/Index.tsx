@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import ThemedNavbar from "../components/ThemedNavbar";
 import Hero from "../components/Hero";
 import AboutUs from "../components/AboutUs";
@@ -16,10 +16,25 @@ import BookingCalendar from "../components/BookingCalendar";
 
 const Index = () => {
   const mainRef = useRef<HTMLDivElement>(null);
+  const [showNavbar, setShowNavbar] = useState(false);
+
+  // Scroll-based navbar visibility
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 50) {
+        setShowNavbar(true);
+      } else {
+        setShowNavbar(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div ref={mainRef} className="min-h-screen">
-      <ThemedNavbar />
+      <ThemedNavbar showNavbar={showNavbar} />
       <Hero />
       <section data-aos="fade-up">
          <AboutUs />

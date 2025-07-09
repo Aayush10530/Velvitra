@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -17,12 +16,12 @@ const images = [
     caption: "Taj Mahal at dawn, when the marble takes on a golden hue"
   },
   {
-    src: "/lovable-uploads/bda4c7b4-e8d4-44be-be79-7cae37c2cd37.png",
+    src: "/heritage-uploads/bda4c7b4-e8d4-44be-be79-7cae37c2cd37.png",
     alt: "Taj Mahal through garden view",
     caption: "The Taj Mahal viewed through lush gardens with vibrant greenery"
   },
   {
-    src: "/lovable-uploads/b0660bda-2876-4f0f-847c-90db3be621e0.png",
+    src: "/heritage-uploads/b0660bda-2876-4f0f-847c-90db3be621e0.png",
     alt: "Agra Fort Interior",
     caption: "Sunlight streams through the ornate latticework of Agra Fort, illuminating the magnificent Mughal architecture within",
     objectFit: "contain"
