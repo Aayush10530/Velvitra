@@ -24,15 +24,15 @@
 
 ## 📦 Project Structure
 
-**Velvitra/
-**├── src/ # Frontend components & logic
-**├── server/ # Backend/server code
-**├── public/ # Static files
-**├── heritage-uploads/ # Asset uploads
-**├── package.json
-**├── vite.config.ts
-**├── tailwind.config.js
-**└── README.md
+Velvitra/
+├── src/ # Frontend components & logic
+├── server/ # Backend/server code
+├── public/ # Static files
+├── heritage-uploads/ # Asset uploads
+├── package.json
+├── vite.config.ts
+├── tailwind.config.js
+└── README.md
 
 Explore the code to understand its modularity and best-practice organization!
 
