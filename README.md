@@ -23,9 +23,10 @@
 ---
 
 ## 📦 Project Structure
+```
 
 Velvitra/
-├── src/ # Frontend components & logic'''
+├── src/ # Frontend components & logic
 ├── server/ # Backend/server code
 ├── public/ # Static files
 ├── heritage-uploads/ # Asset uploads
