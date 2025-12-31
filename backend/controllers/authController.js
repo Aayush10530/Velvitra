@@ -192,6 +192,8 @@ const forgotPassword = async (req, res) => {
       success: true,
       message: 'Password reset email sent'
     });
+    console.log(`[DEBUG] Forgot Password - Token generated: ${resetToken}`);
+    console.log(`[DEBUG] Forgot Password - Reset URL: ${resetUrl}`);
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -211,6 +213,9 @@ const resetPassword = async (req, res) => {
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() }
     });
+
+    console.log(`[DEBUG] Reset Password - Token received: ${token}`);
+    console.log(`[DEBUG] Reset Password - User found: ${user ? user.email : 'None'}`);
 
     if (!user) {
       return res.status(400).json({

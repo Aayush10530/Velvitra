@@ -94,7 +94,7 @@ const TourPackages = () => {
       ]
     }
   ];
-  
+
   return (
     <section id="tours" className="section-padding" ref={sectionRef}>
       <div className="container-custom">
@@ -107,39 +107,39 @@ const TourPackages = () => {
           </h2>
           <div className="w-20 h-1 bg-accent mx-auto mb-8 fade-in"></div>
           <p className="text-lg fade-in">
-            Discover our carefully crafted tour packages, designed to showcase the best of Agra's Mughal heritage with 
+            Discover our carefully crafted tour packages, designed to showcase the best of Agra's Mughal heritage with
             the perfect balance of historical insight, comfort, and memorable experiences.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8">
           {tourPackages.map((tour, index) => (
-            <div 
-              key={tour.id} 
-              className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-shadow fade-in relative"
+            <div
+              key={tour.id}
+              className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-2xl hover:scale-105 transition-all duration-300 fade-in relative"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="relative h-64">
-                <img 
-                  src={tour.image} 
-                  alt={tour.title} 
+                <img
+                  src={tour.image}
+                  alt={tour.title}
                   className="w-full h-full object-cover"
                 />
-                
+
                 {tour.tags?.includes("best-seller") && (
                   <div className="absolute top-4 left-4 bg-accent text-accent-foreground px-3 py-1 rounded-full font-medium text-sm flex items-center gap-1">
                     <Star className="fill-gold" size={14} />
                     <span>Most Booked</span>
                   </div>
                 )}
-                
+
                 {tour.tags?.includes("romantic") && (
                   <div className="absolute top-4 left-4 bg-accent text-accent-foreground px-3 py-1 rounded-full font-medium text-sm flex items-center gap-1">
                     <Heart className="fill-red-500 text-red-500" size={14} />
                     <span>Couples Special</span>
                   </div>
                 )}
-                
+
                 {/* Price tag */}
                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm">
                   <div className="flex items-center gap-1 font-medium">
@@ -149,7 +149,7 @@ const TourPackages = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -164,17 +164,17 @@ const TourPackages = () => {
                     </div>
                   )*/}
                 </div>
-                
+
                 <h3 className="font-playfair text-xl font-semibold mb-3">{tour.title}</h3>
                 <p className="mb-4 text-gray-700">{tour.description}</p>
-                
-                <TourHighlights 
-                  highlights={tour.highlights} 
+
+                <TourHighlights
+                  highlights={tour.highlights}
                   className="mb-6"
                 />
-                
+
                 <div className="flex justify-end">
-                  <Link 
+                  <Link
                     to={`/tour/${tour.id}`}
                     className="btn-primary py-2 inline-flex items-center"
                   >
@@ -186,7 +186,7 @@ const TourPackages = () => {
             </div>
           ))}
         </div>
-        
+
         <div className="mt-12 text-center fade-in">
           <Link to="/tours" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
             Explore More
