@@ -11,7 +11,6 @@ const Hero = () => {
     const video = videoRef.current;
     if (video && !showContent && video.duration && video.currentTime >= video.duration * 0.25) {
       setShowContent(true);
-      video.loop = true;
     }
   };
 
