@@ -86,39 +86,42 @@ const Services = () => {
           </h2>
           <div className="w-20 h-1 bg-accent mx-auto mb-8 fade-in"></div>
           <p className="text-lg fade-in">
-            We provide a comprehensive suite of premium services designed to make your visit to 
+            We provide a comprehensive suite of premium services designed to make your visit to
             the Taj Mahal and Agra's other treasures as comfortable and enriching as possible.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {services.map((service, index) => (
-            <div 
-              key={index} 
-              className="bg-primary/30 p-8 rounded-lg hover:shadow-lg transition-all fade-in group"
+            <div
+              key={index}
+              className="bg-primary/30 p-8 rounded-lg hover:shadow-xl transition-all duration-500 ease-in-out fade-in group overflow-hidden max-h-[220px] hover:max-h-[800px] hover:bg-white"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="bg-accent/20 p-4 rounded-full inline-block mb-6 group-hover:bg-accent/30 transition-colors">
                 <div className="text-accent-foreground">{service.icon}</div>
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                <p className="text-muted-foreground mb-4">{service.description}</p>
-                <ul className="space-y-2 mb-6">
-                  {service.features?.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <Check className="h-5 w-5 text-accent shrink-0 mt-0.5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link 
-                  to={service.path}
-                  className="inline-flex items-center text-accent hover:text-accent/80 transition-colors font-medium"
-                >
-                  Learn More
-                  <ArrowRight className="ml-2" size={16} />
-                </Link>
+              <div>
+                <h3 className="text-xl font-semibold mb-2 group-hover:text-accent transition-colors">{service.title}</h3>
+
+                <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100 transform translate-y-4 group-hover:translate-y-0">
+                  <p className="text-muted-foreground mb-4">{service.description}</p>
+                  <ul className="space-y-2 mb-6">
+                    {service.features?.map((feature, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    to={service.path}
+                    className="inline-flex items-center text-accent hover:text-accent/80 transition-colors font-medium"
+                  >
+                    Learn More
+                    <ArrowRight className="ml-2" size={16} />
+                  </Link>
+                </div>
               </div>
             </div>
           ))}

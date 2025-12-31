@@ -364,7 +364,7 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               </div>
             )}
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full bg-black text-white hover:bg-white hover:text-black hover:border-black border border-transparent hover:border transition-all duration-300 py-6 text-lg">
               {isForgotPassword
                 ? "Send Reset Link"
                 : isSignIn

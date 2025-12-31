@@ -60,15 +60,13 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
   // Determine navbar visibility and animation
   const isHomePage = location.pathname === '/';
   const shouldShowNavbar = isHomePage ? showNavbar : true;
-  const navbarClasses = isHomePage 
-    ? `fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${
-        shouldShowNavbar 
-          ? 'opacity-100 translate-y-0' 
-          : 'opacity-0 -translate-y-full'
-      } ${isScrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-transparent"}`
-    : `fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? "bg-background/80 backdrop-blur-md shadow-sm" : "bg-transparent"
-      }`;
+  const navbarClasses = isHomePage
+    ? `fixed top-0 left-0 w-full z-50 transition-all duration-500 ease-in-out ${shouldShowNavbar
+      ? 'opacity-100 translate-y-0'
+      : 'opacity-0 -translate-y-full'
+    } ${isScrolled ? "glass" : "bg-transparent"}`
+    : `fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled ? "glass" : "bg-transparent"
+    }`;
 
   return (
     <>
@@ -124,7 +122,7 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
               ) : (
                 <Button
                   variant="outline"
-                  className="flex items-center gap-2 bg-accent/20 text-accent hover:bg-accent hover:text-accent-foreground border-accent"
+                  className="flex items-center gap-2 bg-white/25 backdrop-blur-md border border-white/40 text-black hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-lg"
                   onClick={() => setIsAuthModalOpen(true)}
                 >
                   <User size={16} />
@@ -144,12 +142,12 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-2 bg-accent/20 text-accent hover:bg-accent hover:text-accent-foreground border-accent"
-                     onClick={() => {
-                       navigate('/my-bookings');
-                       setIsMobileMenuOpen(false);
-                     }}
+                    onClick={() => {
+                      navigate('/my-bookings');
+                      setIsMobileMenuOpen(false);
+                    }}
                   >
-                     <User size={16} />
+                    <User size={16} />
                     My Bookings
                   </Button>
                   <Button
@@ -163,9 +161,8 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
                 </>
               ) : (
                 <Button
-                  variant="outline"
                   size="sm"
-                  className="flex items-center gap-2 bg-accent/20 text-accent hover:bg-accent hover:text-accent-foreground border-accent"
+                  className="flex items-center gap-2 bg-white/25 backdrop-blur-md border border-white/40 text-black hover:bg-black hover:text-white hover:border-black transition-all duration-300 shadow-lg"
                   onClick={() => setIsAuthModalOpen(true)}
                 >
                   <User size={16} />
@@ -184,9 +181,8 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
 
         {/* Mobile Menu */}
         <div
-          className={`fixed inset-0 bg-background backdrop-blur-lg z-40 transition-transform duration-300 transform ${
-            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-          } md:hidden pt-20`}
+          className={`fixed inset-0 bg-background backdrop-blur-lg z-40 transition-transform duration-300 transform ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+            } md:hidden pt-20`}
         >
           <div className="container-custom flex flex-col space-y-4 py-8">
             <a
@@ -234,7 +230,7 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
                   className="py-3 text-lg border-b border-border text-black flex items-center gap-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                   <User size={18} />
+                  <User size={18} />
                   My Bookings
                 </Link>
                 <Button
@@ -250,9 +246,9 @@ const ThemedNavbar = ({ showNavbar }: { showNavbar?: boolean }) => {
         </div>
       </nav>
 
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
       />
     </>
   );
