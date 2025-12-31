@@ -66,3 +66,18 @@ model Review {
   user      User     @relation(fields: [userId], references: [id])
   tour      Tour     @relation(fields: [tourId], references: [id])
 }
+
+model CustomTour {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  phone       String
+  destination String
+  duration    Int
+  groupSize   Int
+  budget      String?
+  requirements String?
+  status      String   @default("pending") // pending, contacted, closed
+  
+  createdAt   DateTime @default(now())
+}

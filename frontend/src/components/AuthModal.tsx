@@ -10,7 +10,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { registerUser, loginUser, forgotPassword } from "@/lib/api"; // Import the new API functions
+import { supabase } from "@/lib/supabase";
+import axios from "axios";
+import { API_BASE_URL } from "@/lib/api";
 
 // Form validation schemas
 const registerSchema = z.object({
@@ -149,47 +151,63 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const onSubmit = async (data: any) => {
     try {
       if (isForgotPassword) {
-        // Handle Forgot Password
-        await forgotPassword(data.email);
+        const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
         toast.success("Password reset link sent to your email!");
         setIsForgotPassword(false);
         setIsSignIn(true);
         reset();
       } else if (isSignIn) {
-        // Handle sign in
-        console.log("Attempting sign in with data:", data);
-        const response = await loginUser(data);
-        console.log("Sign in successful:", response);
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
+        if (error) throw error;
 
-        // Save JWT token (e.g., in localStorage or a secure cookie)
-        localStorage.setItem('token', response.token);
-        // TODO: Update frontend authentication state (e.g., using context)
+        // Sync profile
+        if (authData.session) {
+          try {
+            const token = authData.session.access_token;
+            await axios.post(`${API_BASE_URL}/users/sync`, {}, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+          } catch (syncError) {
+            console.error("Profile sync warning:", syncError);
+          }
+        }
 
-        toast.success(response.message || "Signed in successfully!");
+        toast.success("Signed in successfully!");
         onClose();
         reset();
       } else {
-        // Handle register
-        console.log("Attempting register with data:", data);
+        const fullPhoneNumber = (countries.find(c => c.code === data.country)?.phoneCode || "") + data.phoneNumber;
+        const { data: authData, error } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: data.name,
+              phone: fullPhoneNumber,
+            }
+          }
+        });
+        if (error) throw error;
 
-        // Combine country code and phone number for registration
-        const registrationData = {
-          ...data,
-          phoneNumber: (countries.find(c => c.code === data.country)?.phoneCode || "") + data.phoneNumber
-        };
-
-        // Call the backend registration API
-        const response = await registerUser(registrationData);
-        console.log("Registration successful:", response);
-
-        toast.success(
-          response.message ||
-          "Registration successful! Please check your email to verify your account."
-        );
-        // Do not automatically sign in or switch to sign-in tab here
-        // The user needs to verify their email first
-        onClose(); // Close the modal
-        reset(); // Reset form fields
+        if (authData.session) {
+          // Auto login
+          const token = authData.session.access_token;
+          await axios.post(`${API_BASE_URL}/users/sync`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          toast.success("Registered and signed in!");
+          onClose();
+        } else {
+          toast.success("Registered! Please check your email to verify.");
+          onClose();
+        }
+        reset();
       }
     } catch (error: any) {
       console.error("Authentication failed:", error);
