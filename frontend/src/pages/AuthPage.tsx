@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
+import { registerUser, loginUser, forgotPassword } from "@/lib/api";
 
 // Form validation schemas
 const registerSchema = z.object({
@@ -31,6 +32,10 @@ const signInSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 // List of countries (excluding Pakistan)
 const countries = [
   { code: "IN", name: "India", phoneCode: "+91" },
@@ -48,6 +53,7 @@ const countries = [
 
 const AuthPage = () => {
   const [isSignIn, setIsSignIn] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -56,8 +62,15 @@ const AuthPage = () => {
     formState: { errors },
     watch,
     setValue,
+    reset,
   } = useForm({
-    resolver: zodResolver(isSignIn ? signInSchema : registerSchema),
+    resolver: zodResolver(
+      isForgotPassword
+        ? forgotPasswordSchema
+        : isSignIn
+          ? signInSchema
+          : registerSchema
+    ),
   });
 
   const selectedCountry = watch("country");
@@ -65,19 +78,29 @@ const AuthPage = () => {
 
   const onSubmit = async (data: any) => {
     try {
-      if (isSignIn) {
-        // Handle sign in
-        console.log("Sign in:", data);
+      if (isForgotPassword) {
+        await forgotPassword(data.email);
+        toast.success("Password reset link sent to your email!");
+        setIsForgotPassword(false);
+        setIsSignIn(true);
+      } else if (isSignIn) {
+        const response = await loginUser(data);
+        localStorage.setItem('token', response.token);
         toast.success("Signed in successfully!");
         navigate("/");
       } else {
-        // Handle register
-        console.log("Register:", data);
-        toast.success("Registered successfully!");
+        const registrationData = {
+          ...data,
+          phoneNumber: (countries.find(c => c.code === data.country)?.phoneCode || "") + data.phoneNumber
+        };
+        await registerUser(registrationData);
+        toast.success("Registered successfully! Please verify your email.");
         setIsSignIn(true);
       }
-    } catch (error) {
-      toast.error("An error occurred. Please try again.");
+      reset();
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      toast.error(error.message || "An error occurred. Please try again.");
     }
   };
 
@@ -93,11 +116,15 @@ const AuthPage = () => {
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h1 className="text-2xl font-playfair font-bold text-center mb-8">
-              {isSignIn ? "Welcome Back" : "Create Account"}
+              {isForgotPassword
+                ? "Reset Password"
+                : isSignIn
+                  ? "Welcome Back"
+                  : "Create Account"}
             </h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {!isSignIn && (
+              {!isSignIn && !isForgotPassword && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -172,38 +199,67 @@ const AuthPage = () => {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                  className={errors.password ? "border-red-500" : ""}
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password.message as string}</p>
-                )}
-                {!isSignIn && (
-                  <p className="text-xs text-muted-foreground">
-                    Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character
-                  </p>
-                )}
-              </div>
+              {!isForgotPassword && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    {isSignIn && (
+                      <button
+                        type="button"
+                        onClick={() => setIsForgotPassword(true)}
+                        className="text-sm text-accent hover:underline"
+                      >
+                        Forgot Password?
+                      </button>
+                    )}
+                  </div>
+                  <Input
+                    id="password"
+                    type="password"
+                    {...register("password")}
+                    className={errors.password ? "border-red-500" : ""}
+                  />
+                  {errors.password && (
+                    <p className="text-sm text-red-500">{errors.password.message as string}</p>
+                  )}
+                  {!isSignIn && (
+                    <p className="text-xs text-muted-foreground">
+                      Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Button type="submit" className="w-full">
-                {isSignIn ? "Sign In" : "Register"}
+                {isForgotPassword
+                  ? "Send Reset Link"
+                  : isSignIn
+                    ? "Sign In"
+                    : "Register"}
               </Button>
             </form>
 
             <div className="mt-6 text-center">
-              <button
-                onClick={() => setIsSignIn(!isSignIn)}
-                className="text-accent hover:underline"
-              >
-                {isSignIn
-                  ? "Don't have an account? Register"
-                  : "Already have an account? Sign In"}
-              </button>
+              {isForgotPassword ? (
+                <button
+                  onClick={() => {
+                    setIsForgotPassword(false);
+                    setIsSignIn(true);
+                  }}
+                  className="text-accent hover:underline"
+                >
+                  Back to Sign In
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsSignIn(!isSignIn)}
+                  className="text-accent hover:underline"
+                >
+                  {isSignIn
+                    ? "Don't have an account? Register"
+                    : "Already have an account? Sign In"}
+                </button>
+              )}
             </div>
           </div>
         </div>
