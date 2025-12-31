@@ -11,7 +11,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { registerUser, loginUser, forgotPassword } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
+import axios from "axios";
+import { API_BASE_URL } from "@/lib/api";
 
 // Form validation schemas
 const registerSchema = z.object({
@@ -79,23 +81,66 @@ const AuthPage = () => {
   const onSubmit = async (data: any) => {
     try {
       if (isForgotPassword) {
-        await forgotPassword(data.email);
+        const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
         toast.success("Password reset link sent to your email!");
         setIsForgotPassword(false);
         setIsSignIn(true);
       } else if (isSignIn) {
-        const response = await loginUser(data);
-        localStorage.setItem('token', response.token);
+        const { data: authData, error } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        });
+        if (error) throw error;
+
+        // Sync profile just in case it wasn't created
+        if (authData.session) {
+          try {
+            // We use direct axios here to forward the headers manually, or reuse api client if exported
+            // Ideally, use the interceptor-enabled client, but for now we manually attach token or just trust the interceptor if we use the imported 'api' (which isn't exported as default from lib/api).
+            // Let's use lazy sync: The interceptor in lib/api.ts will attach the token.
+            // We just need to make a request to /users/sync
+            const token = authData.session.access_token;
+            await axios.post(`${API_BASE_URL}/users/sync`, {}, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+          } catch (syncError) {
+            console.error("Profile sync warning:", syncError);
+          }
+        }
+
         toast.success("Signed in successfully!");
         navigate("/");
       } else {
-        const registrationData = {
-          ...data,
-          phoneNumber: (countries.find(c => c.code === data.country)?.phoneCode || "") + data.phoneNumber
-        };
-        await registerUser(registrationData);
-        toast.success("Registered successfully! Please verify your email.");
-        setIsSignIn(true);
+        const fullPhoneNumber = (countries.find(c => c.code === data.country)?.phoneCode || "") + data.phoneNumber;
+
+        const { data: authData, error } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: data.name,
+              phone: fullPhoneNumber,
+            }
+          }
+        });
+
+        if (error) throw error;
+
+        if (authData.user && !authData.session) {
+          toast.success("Registered successfully! Please verify your email.");
+          setIsSignIn(true);
+        } else if (authData.session) {
+          // Auto login scenario (if email confirmation is off)
+          const token = authData.session.access_token;
+          await axios.post(`${API_BASE_URL}/users/sync`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          toast.success("Registered and signed in!");
+          navigate("/");
+        }
       }
       reset();
     } catch (error: any) {

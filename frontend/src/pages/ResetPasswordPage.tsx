@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { resetPassword } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 const resetPasswordSchema = z.object({
     password: z.string()
@@ -23,7 +23,6 @@ const resetPasswordSchema = z.object({
 });
 
 const ResetPasswordPage = () => {
-    const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -40,19 +39,18 @@ const ResetPasswordPage = () => {
     });
 
     const onSubmit = async (data: any) => {
-        if (!token) {
-            toast.error("Invalid reset link");
-            return;
-        }
-
         setIsSubmitting(true);
         try {
-            await resetPassword(token, data.password);
-            toast.success("Password reset successfully! You can now log in.");
-            navigate("/"); // Redirect to home/login
+            // NOTE: This page assumes the user clicked the link in email, which sets the session.
+            // Supabase "magic link" for password reset logs the user in automatically.
+            const { error } = await supabase.auth.updateUser({ password: data.password });
+            if (error) throw error;
+
+            toast.success("Password updated successfully!");
+            navigate("/");
         } catch (error: any) {
             console.error("Password reset failed:", error);
-            toast.error(error.message || "Failed to reset password. The link may have expired.");
+            toast.error(error.message || "Failed to reset password.");
         } finally {
             setIsSubmitting(false);
         }

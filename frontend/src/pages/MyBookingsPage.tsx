@@ -26,22 +26,31 @@ interface Booking {
 }
 
 const MyBookingsPage = () => {
-  const { user, token, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!isAuthenticated || !token) {
+      if (isLoading) return; // Wait for auth to load
+
+      if (!isAuthenticated) {
         setLoadingBookings(false);
         return;
       }
 
       try {
         setLoadingBookings(true);
-        const data = await getUserBookings(token); // Pass token for authenticated request
-        setBookings(data.data);
+        // The API now uses cookies/interceptor, no need to pass token manually if interceptor is set up globally
+        // But our interceptor in api.ts handles it.
+        const data = await getUserBookings();
+        // Note: The new API returns array directly or { data: [] }? 
+        // Our backend returns json(bookings) which is an array.
+        // Our api.ts returns response.data.
+
+        // Let's assume response.data IS the array based on backend code "res.json(bookings)"
+        setBookings(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err: any) {
         console.error('Failed to fetch bookings:', err);
@@ -54,7 +63,7 @@ const MyBookingsPage = () => {
 
     fetchBookings();
 
-  }, [isAuthenticated, token]); // Refetch when auth status or token changes
+  }, [isAuthenticated, isLoading]);
 
   if (isLoading) {
     return <div>Loading user authentication...</div>; // Or a spinner component
@@ -95,10 +104,10 @@ const MyBookingsPage = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background">
       <ThemedNavbar />
-      <main className="flex-grow container mx-auto px-4 py-20">
-        <h1 className="text-3xl font-playfair font-bold mb-8">My Bookings</h1>
+      <main className="flex-grow container mx-auto px-4 py-32">
+        <h1 className="text-4xl font-playfair font-bold mb-12 text-black">My Bookings</h1>
 
         <Tabs defaultValue="upcoming">
           <TabsList className="grid w-full grid-cols-3">

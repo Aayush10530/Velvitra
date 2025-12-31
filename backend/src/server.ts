@@ -16,6 +16,17 @@ app.get('/', (req, res) => {
     res.json({ message: 'Velvitra Backend is Running (Ironclad Stack)' });
 });
 
+// Routes
+import tourRoutes from './routes/tours';
+import bookingRoutes from './routes/bookings';
+import userRoutes from './routes/users';
+import customTourRoutes from './routes/customTours';
+
+app.use('/api/tours', tourRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/custom-tours', customTourRoutes);
+
 // Database Connection Check
 app.get('/api/health', async (req, res) => {
     try {

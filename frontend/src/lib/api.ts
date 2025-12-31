@@ -9,13 +9,31 @@ import type {
   ApiResponse,
   Booking
 } from '@/types/api';
+import { supabase } from './supabase';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor to add the auth token
+api.interceptors.request.use(async (config) => {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
+  }
+  return config;
+});
 
 // Create Razorpay order
 export const createRazorpayOrder = async (data: CreateRazorpayOrderData) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/create-razorpay-order`, data);
+    const response = await api.post(`/create-razorpay-order`, data);
     return response.data;
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
@@ -56,74 +74,12 @@ export const createBooking = async (data: CreateBookingData) => {
   }
 };
 
-// User Registration
-export const registerUser = async (data: UserRegistrationData): Promise<ApiResponse> => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/register`, data);
-    return response.data;
-  } catch (error: unknown) {
-    console.error('Error registering user:', error);
-    const axiosError = error as { response?: { data?: unknown }; message?: string };
-    throw axiosError.response?.data || axiosError.message || 'Registration failed';
-  }
-};
-
-// User Login
-export const loginUser = async (data: UserLoginData): Promise<ApiResponse> => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
-    return response.data;
-  } catch (error: unknown) {
-    console.error('Error logging in user:', error);
-    const axiosError = error as { response?: { data?: unknown }; message?: string };
-    throw axiosError.response?.data || axiosError.message || 'Login failed';
-  }
-};
-
-// User Logout
-export const logoutUser = async () => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/logout`);
-    return response.data;
-  } catch (error: unknown) {
-    console.error('Error logging out user:', error);
-    const axiosError = error as { response?: { data?: unknown }; message?: string };
-    throw axiosError.response?.data || axiosError.message || 'Logout failed';
-  }
-};
-
-// Forgot Password
-export const forgotPassword = async (email: string): Promise<ApiResponse> => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
-    return response.data;
-  } catch (error: unknown) {
-    console.error('Error requesting password reset:', error);
-    const axiosError = error as { response?: { data?: unknown }; message?: string };
-    throw axiosError.response?.data || axiosError.message || 'Failed to request password reset';
-  }
-};
-
-// Reset Password
-export const resetPassword = async (token: string, password: string): Promise<ApiResponse> => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/reset-password/${token}`, { password });
-    return response.data;
-  } catch (error: unknown) {
-    console.error('Error resetting password:', error);
-    const axiosError = error as { response?: { data?: unknown }; message?: string };
-    throw axiosError.response?.data || axiosError.message || 'Failed to reset password';
-  }
-};
+// Auth functions removed in favor of Supabase Auth
 
 // Fetch user bookings
-export const getUserBookings = async (token: string): Promise<ApiResponse<Booking[]>> => {
+export const getUserBookings = async (): Promise<ApiResponse<Booking[]>> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/bookings/my-bookings`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await api.get(`/bookings/my-bookings`);
     return response.data;
   } catch (error: unknown) {
     console.error('Error fetching user bookings:', error);

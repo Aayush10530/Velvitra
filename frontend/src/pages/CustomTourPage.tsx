@@ -21,6 +21,7 @@ import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui
 import { Checkbox } from "@/components/ui/checkbox";
 import axios from 'axios';
 import { useToast } from "@/components/ui/use-toast";
+import { motion } from "framer-motion";
 
 interface CustomTourFormData {
   name: string;
@@ -400,38 +401,46 @@ const CustomTourPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <ThemedNavbar />
-      <div className="flex-grow container-custom py-12 flex items-center justify-center">
-        <Card className="w-full max-w-2xl p-6 shadow-lg rounded-lg">
-          <CardHeader>
-            <CardTitle className="text-3xl font-playfair font-bold text-gray-900 text-center">Plan Your Custom Tour</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {renderStep()}
+      <div className="flex-grow container-custom py-32 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          whileHover={{ scale: 1.02 }}
+          className="w-full max-w-2xl"
+        >
+          <Card className="w-full shadow-xl rounded-xl border-none bg-[#fbf3e4]/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+            <CardHeader>
+              <CardTitle className="text-3xl font-playfair font-bold text-gray-900 text-center">Plan Your Custom Tour</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-8">
+                {renderStep()}
 
-              <div className="flex justify-between mt-8">
-                {step > 1 && (
-                  <Button variant="outline" onClick={prevStep}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
-                    Previous
-                  </Button>
-                )}
-                {step < 4 ? (
-                  <Button onClick={nextStep} className="ml-auto">
-                    Next
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button type="submit" disabled={isSubmitting} className="ml-auto">
-                    {isSubmitting ? "Submitting..." : "Submit Request"}
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                <div className="flex justify-between mt-8">
+                  {step > 1 && (
+                    <Button variant="outline" onClick={prevStep} className="bg-white/50 border-gray-400 hover:bg-white">
+                      <ChevronLeft className="mr-2 h-4 w-4" />
+                      Previous
+                    </Button>
+                  )}
+                  {step < 4 ? (
+                    <Button onClick={nextStep} className="ml-auto bg-black text-white hover:bg-gray-800">
+                      Next
+                      <ChevronRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button type="submit" disabled={isSubmitting} className="ml-auto bg-black text-white hover:bg-gray-800">
+                      {isSubmitting ? "Submitting..." : "Submit Request"}
+                    </Button>
+                  )}
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
       <Footer />
     </div>
