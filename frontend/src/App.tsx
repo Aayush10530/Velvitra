@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
 import BookingPage from "./pages/BookingPage";
 import MyBookingsPage from "./pages/MyBookingsPage";
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import HotelsPage from "./pages/HotelsPage";
 import BlogPage from "@/pages/BlogPage";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/my-bookings" element={<MyBookingsPage />} />
             <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
             <Route path="/blog" element={<BlogPage />} />
             <Route path="/admin/availability" element={<AdminAvailabilityPage />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
