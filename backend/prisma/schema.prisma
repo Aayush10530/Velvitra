@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  bookings  Booking[]
+  reviews   Review[]
+
+  // Supabase Auth Sync (optional, but good for linking)
+  supabaseId String? @unique
+}
+
+model Tour {
+  id          String   @id @default(uuid())
+  title       String
+  location    String
+  description String
+  price       Float
+  duration    Int      // in days
+  maxGroupSize Int
+  imageCover  String?
+  images      String[] // Array of strings for multiple images
+  
+  createdAt   DateTime @default(now())
+  
+  bookings    Booking[]
+  reviews     Review[]
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  userId    String
+  tourId    String
+  price     Float
+  paid      Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+  tour      Tour     @relation(fields: [tourId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Int
+  comment   String?
+  userId    String
+  tourId    String
+  
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id])
+  tour      Tour     @relation(fields: [tourId], references: [id])
+}
