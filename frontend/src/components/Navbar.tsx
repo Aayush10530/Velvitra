@@ -33,8 +33,8 @@ const Navbar = () => {
   return (
     <>
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-300 backdrop-blur-lg border-b-2 border-gold/80 ${scrolled ? 'bg-white/80 shadow-lg py-3' : 'bg-white/60 py-5'}`}
-        style={{ boxShadow: scrolled ? '0 4px 24px 0 rgba(44, 44, 84, 0.08)' : 'none' }}
+        className={`fixed top-0 w-full z-50 transition-all duration-300 glass border-b-2 border-gold/50 ${scrolled ? 'bg-white/20 py-3' : 'bg-white/10 py-5'}`}
+        style={{ boxShadow: scrolled ? '0 4px 30px rgba(0, 0, 0, 0.1)' : 'none' }}
       >
         <div className="container-custom flex justify-between items-center">
           <Link to="/" className="flex flex-col">
@@ -50,7 +50,7 @@ const Navbar = () => {
             </a>
           </div>
           {/* Mobile Menu Button */}
-          <button 
+          <button
             className="lg:hidden text-foreground"
             onClick={toggleMenu}
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
