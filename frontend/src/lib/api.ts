@@ -10,7 +10,7 @@ import type {
   Booking
 } from '@/types/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 // Create Razorpay order
 export const createRazorpayOrder = async (data: CreateRazorpayOrderData) => {
@@ -89,6 +89,30 @@ export const logoutUser = async () => {
     console.error('Error logging out user:', error);
     const axiosError = error as { response?: { data?: unknown }; message?: string };
     throw axiosError.response?.data || axiosError.message || 'Logout failed';
+  }
+};
+
+// Forgot Password
+export const forgotPassword = async (email: string): Promise<ApiResponse> => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/forgot-password`, { email });
+    return response.data;
+  } catch (error: unknown) {
+    console.error('Error requesting password reset:', error);
+    const axiosError = error as { response?: { data?: unknown }; message?: string };
+    throw axiosError.response?.data || axiosError.message || 'Failed to request password reset';
+  }
+};
+
+// Reset Password
+export const resetPassword = async (token: string, password: string): Promise<ApiResponse> => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/reset-password/${token}`, { password });
+    return response.data;
+  } catch (error: unknown) {
+    console.error('Error resetting password:', error);
+    const axiosError = error as { response?: { data?: unknown }; message?: string };
+    throw axiosError.response?.data || axiosError.message || 'Failed to reset password';
   }
 };
 

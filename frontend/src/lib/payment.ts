@@ -1,4 +1,4 @@
-import { createRazorpayOrder, verifyRazorpayPayment, createStripePaymentIntent, createBooking } from './api';
+import { createRazorpayOrder, verifyRazorpayPayment, createStripePaymentIntent, createBooking, API_BASE_URL } from './api';
 
 // Razorpay configuration
 declare global {
@@ -47,7 +47,7 @@ interface PaymentOptions {
 export async function processRazorpayPayment({ amount, tourId, bookingDetails }: PaymentOptions) {
   try {
     // Create order on backend
-    const response = await fetch('http://localhost:5000/api/payments/create-razorpay-order', {
+    const response = await fetch(`${API_BASE_URL}/payments/create-razorpay-order`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export async function processRazorpayPayment({ amount, tourId, bookingDetails }:
       handler: async function (response: any) {
         try {
           // Verify payment on backend
-          const verifyResponse = await fetch('http://localhost:5000/api/payments/verify-razorpay-payment', {
+          const verifyResponse = await fetch(`${API_BASE_URL}/payments/verify-razorpay-payment`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -125,7 +125,7 @@ export async function processRazorpayPayment({ amount, tourId, bookingDetails }:
 export async function processStripePayment({ amount, tourId, bookingDetails }: PaymentOptions) {
   try {
     // Create payment intent on backend
-    const response = await fetch('http://localhost:5000/api/payments/create-stripe-payment-intent', {
+    const response = await fetch(`${API_BASE_URL}/payments/create-stripe-payment-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

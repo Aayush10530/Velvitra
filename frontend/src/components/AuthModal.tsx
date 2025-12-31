@@ -10,16 +10,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { registerUser, loginUser } from "@/lib/api"; // Import the new API functions
+import { registerUser, loginUser, forgotPassword } from "@/lib/api"; // Import the new API functions
 
 // Form validation schemas
 const registerSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().trim().regex(/^[\w'\-,.]+(?: [\w'\-,.]+)+$/, "Please enter your full name (first & last name)"),
   country: z.string().min(1, "Please select a country"),
-  phoneNumber: z.string().regex(/^\+[1-9]\d{1,14}$/, "Invalid phone number format"),
+  phoneNumber: z.string().regex(/^\d{10,15}$/, "Invalid phone number format"),
   email: z.string().email("Invalid email address"),
   password: z.string()
-    .min(12, "Password must be at least 12 characters")
     .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
     .regex(/[a-z]/, "Password must contain at least one lowercase letter")
     .regex(/[0-9]/, "Password must contain at least one number")
@@ -29,6 +28,10 @@ const registerSchema = z.object({
 const signInSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email address"),
 });
 
 // List of countries with their phone codes
@@ -93,6 +96,7 @@ interface AuthModalProps {
 
 const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [isSignIn, setIsSignIn] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   const {
@@ -104,7 +108,13 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
     reset,
     control,
   } = useForm({
-    resolver: zodResolver(isSignIn ? signInSchema : registerSchema),
+    resolver: zodResolver(
+      isForgotPassword
+        ? forgotPasswordSchema
+        : isSignIn
+          ? signInSchema
+          : registerSchema
+    ),
     defaultValues: {
       name: "",
       country: "",
@@ -127,34 +137,25 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
         email: "",
         password: "",
       });
+      setIsForgotPassword(false);
     } else {
       reset();
       document.body.style.overflow = "";
     }
   }, [isOpen, isSignIn, reset, countries]);
 
-  useEffect(() => {
-    if (!isSignIn && selectedCountryCode && selectedCountryData) {
-      const currentPhoneNumberValue = watch("phoneNumber");
-      const digitsOnly = countries.reduce((acc, country) => {
-        if (currentPhoneNumberValue.startsWith(country.phoneCode)) {
-          return currentPhoneNumberValue.substring(country.phoneCode.length);
-        }
-        return acc;
-      }, currentPhoneNumberValue).replace(/\D/g, '');
 
-      const newPhoneNumberValue = selectedCountryData.phoneCode + digitsOnly;
-
-      // Only update if value differs
-      if (currentPhoneNumberValue !== newPhoneNumberValue) {
-        setValue("phoneNumber", newPhoneNumberValue, { shouldValidate: true });
-      }
-    }
-  }, [selectedCountryCode, isSignIn, setValue]);
 
   const onSubmit = async (data: any) => {
     try {
-      if (isSignIn) {
+      if (isForgotPassword) {
+        // Handle Forgot Password
+        await forgotPassword(data.email);
+        toast.success("Password reset link sent to your email!");
+        setIsForgotPassword(false);
+        setIsSignIn(true);
+        reset();
+      } else if (isSignIn) {
         // Handle sign in
         console.log("Attempting sign in with data:", data);
         const response = await loginUser(data);
@@ -170,13 +171,20 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
       } else {
         // Handle register
         console.log("Attempting register with data:", data);
+
+        // Combine country code and phone number for registration
+        const registrationData = {
+          ...data,
+          phoneNumber: (countries.find(c => c.code === data.country)?.phoneCode || "") + data.phoneNumber
+        };
+
         // Call the backend registration API
-        const response = await registerUser(data);
+        const response = await registerUser(registrationData);
         console.log("Registration successful:", response);
 
         toast.success(
           response.message ||
-            "Registration successful! Please check your email to verify your account."
+          "Registration successful! Please check your email to verify your account."
         );
         // Do not automatically sign in or switch to sign-in tab here
         // The user needs to verify their email first
@@ -223,12 +231,26 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
             <X size={24} />
           </button>
 
-          <h1 className="text-2xl font-playfair font-bold text-center mb-8">
-            {isSignIn ? "Welcome Back" : "Create Account"}
-          </h1>
+          <div className="text-center mb-8 relative">
+            {isForgotPassword && (
+              <button
+                onClick={() => setIsForgotPassword(false)}
+                className="absolute left-0 top-1 text-gray-500 hover:text-gray-700"
+              >
+                <ArrowLeft size={20} />
+              </button>
+            )}
+            <h1 className="text-2xl font-playfair font-bold">
+              {isForgotPassword
+                ? "Reset Password"
+                : isSignIn
+                  ? "Welcome Back"
+                  : "Create Account"}
+            </h1>
+          </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {!isSignIn && (
+            {!isSignIn && !isForgotPassword && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
@@ -311,53 +333,72 @@ const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor={`password-${isSignIn ? 'signin' : 'register'}`}>Password</Label>
-              <Input
-                id={`password-${isSignIn ? 'signin' : 'register'}`}
-                type="password"
-                {...register("password")}
-                className={errors.password ? "border-red-500" : ""}
-              />
-              {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message as string}</p>
-              )}
-              {!isSignIn && (
-                <p className="text-xs text-muted-foreground">
-                  Password must be at least 12 characters long and contain uppercase, lowercase, number, and special character
-                </p>
-              )}
-            </div>
+            {!isForgotPassword && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`password-${isSignIn ? 'signin' : 'register'}`}>Password</Label>
+                  {isSignIn && (
+                    <button
+                      type="button"
+                      onClick={() => setIsForgotPassword(true)}
+                      className="text-sm text-primary hover:underline text-amber-600"
+                    >
+                      Forgot Password?
+                    </button>
+                  )}
+                </div>
+                <Input
+                  id={`password-${isSignIn ? 'signin' : 'register'}`}
+                  type="password"
+                  {...register("password")}
+                  className={errors.password ? "border-red-500" : ""}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message as string}</p>
+                )}
+                {!isSignIn && (
+                  <p className="text-xs text-muted-foreground">
+                    Password must contain uppercase, lowercase, number, and special character
+                  </p>
+                )}
+              </div>
+            )}
 
             <Button type="submit" className="w-full">
-              {isSignIn ? "Sign In" : "Create Account"}
+              {isForgotPassword
+                ? "Send Reset Link"
+                : isSignIn
+                  ? "Sign In"
+                  : "Create Account"}
             </Button>
 
-            <div className="text-center text-sm text-gray-600">
-              {isSignIn ? (
-                <>Don't have an account?{" "}
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => setIsSignIn(false)}
-                    className="p-0 h-auto"
-                  >
-                    Register
-                  </Button>
-                </>
-              ) : (
-                <>Already have an account?{" "}
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={() => setIsSignIn(true)}
-                    className="p-0 h-auto"
-                  >
-                    Sign In
-                  </Button>
-                </>
-              )}
-            </div>
+            {!isForgotPassword && (
+              <div className="text-center text-sm text-gray-600">
+                {isSignIn ? (
+                  <>Don't have an account?{" "}
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => setIsSignIn(false)}
+                      className="p-0 h-auto"
+                    >
+                      Register
+                    </Button>
+                  </>
+                ) : (
+                  <>Already have an account?{" "}
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => setIsSignIn(true)}
+                      className="p-0 h-auto"
+                    >
+                      Sign In
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
           </form>
         </motion.div>
       </motion.div>
