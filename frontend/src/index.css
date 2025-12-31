@@ -81,7 +81,12 @@
     font-family: 'Montserrat', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Playfair Display', serif;
   }
 }
@@ -90,31 +95,31 @@
   .container-custom {
     @apply container max-w-7xl mx-auto px-4 md:px-8;
   }
-  
+
   .heading-xl {
     @apply font-playfair text-3xl md:text-4xl lg:text-5xl font-bold;
   }
-  
+
   .heading-lg {
     @apply font-playfair text-2xl md:text-3xl font-bold;
   }
-  
+
   .heading-md {
     @apply font-playfair text-xl md:text-2xl font-semibold;
   }
-  
+
   .btn-primary {
     @apply bg-accent text-accent-foreground hover:bg-gold transition-colors px-4 py-2 md:px-6 md:py-3 rounded-md font-medium;
   }
-  
+
   .section-padding {
     @apply py-8 md:py-16;
   }
-  
+
   .fade-in {
-    @apply opacity-0 translate-y-4 transition-all duration-700 ease-out;
+    @apply opacity-0 translate-y-4 transition-all duration-300 ease-out;
   }
-  
+
   .fade-in.appear {
     @apply opacity-100 translate-y-0;
   }
@@ -122,7 +127,7 @@
   .glass {
     @apply bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl;
   }
-  
+
   .glass-dark {
     @apply bg-black/30 backdrop-blur-lg border border-white/10 shadow-xl;
   }
@@ -130,9 +135,9 @@
 
 @layer base {
   body {
-    background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                      radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                      radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    background-image: radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+      radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
     background-attachment: fixed;
     background-size: cover;
   }
