@@ -72,11 +72,23 @@ model CustomTour {
   name        String
   email       String
   phone       String
-  destination String
-  duration    Int
-  groupSize   Int
-  budget      String?
-  requirements String?
+  country     String?
+  countryCode String?
+  
+  // Tour Details
+  monuments   String[]
+  themes      String[]
+  
+  // Travelers
+  adults      Int      @default(1)
+  children    Int      @default(0)
+  
+  // Preferences
+  language    String?
+  travelDate  DateTime?
+  vehicle     String?
+  
+  specialRequests String?
   status      String   @default("pending") // pending, contacted, closed
   
   createdAt   DateTime @default(now())
