@@ -22,15 +22,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import axios from 'axios';
 import { useToast } from "@/components/ui/use-toast";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
+import AuthModal from "@/components/AuthModal";
 
 interface CustomTourFormData {
   name: string;
   email: string;
   phone: string;
   countryCode: string;
+  country: string;
   monument: string[];
   themes: string[];
-  travelers: number;
+  adults: number;
+  children: number;
   language: string;
   date: Date | undefined;
   vehicle: string;
@@ -74,27 +78,68 @@ const countryCodes = [
   { code: "+971", country: "UAE" },
 ];
 
+
 const CustomTourPage: React.FC = () => {
+  const { isAuthenticated, isLoading: authLoading } = useAuth(); // Get auth state
+  const [showAuthModal, setShowAuthModal] = useState(false); // State for AuthModal
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<CustomTourFormData>({
     name: '',
     email: '',
     phone: '',
     countryCode: '+91',
+    country: '', // New field
     monument: [],
     themes: [],
-    travelers: 1,
+    adults: 1, // New field
+    children: 0, // New field
     language: 'english',
     date: undefined,
-    vehicle: 'luxury-sedan',
+    vehicle: '',
     specialRequests: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState(false); // Prevent double-click submission
   const { toast } = useToast();
+
+  // Prevent accidental double-clicks submitting immediately when entering step 4
+  React.useEffect(() => {
+    if (step === 4) {
+      setIsSubmitDisabled(true);
+      const timer = setTimeout(() => setIsSubmitDisabled(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <ThemedNavbar />
+        <div className="flex-grow container-custom py-32 flex items-center justify-center">
+          <Card className="w-full max-w-md shadow-xl rounded-xl border-none bg-[#fbf3e4]/90 backdrop-blur-sm p-6 md:p-8 text-center">
+            <CardContent className="space-y-6">
+              <h2 className="text-2xl font-playfair font-bold text-gray-900">Login Required</h2>
+              <p className="text-gray-600">Please log in to your account to plan your custom tour.</p>
+              <Button onClick={() => setShowAuthModal(true)} className="w-full bg-black text-white hover:bg-gray-800">
+                Log In / Sign Up
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      </div>
+    );
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: name === 'travelers' ? parseInt(value) : value });
+    setFormData({ ...formData, [name]: (name === 'adults' || name === 'children') ? parseInt(value) || 0 : value });
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -127,6 +172,14 @@ const CustomTourPage: React.FC = () => {
           themes: currentThemes.filter((t) => t !== selectedTheme),
         };
       } else {
+        if (currentThemes.length >= 3) {
+          toast({
+            variant: "destructive",
+            title: "Limit Reached",
+            description: "You can select up to 3 themes only.",
+          });
+          return prevFormData;
+        }
         return {
           ...prevFormData,
           themes: [...currentThemes, selectedTheme],
@@ -135,8 +188,38 @@ const CustomTourPage: React.FC = () => {
     });
   };
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+  const validateStep = (currentStep: number) => {
+    switch (currentStep) {
+      case 1:
+        if (!formData.name.trim()) { toast({ variant: "destructive", title: "Missing Name", description: "Please enter your full name." }); return false; }
+        if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) { toast({ variant: "destructive", title: "Invalid Email", description: "Please enter a valid email address." }); return false; }
+        if (!formData.phone.trim()) { toast({ variant: "destructive", title: "Missing Phone", description: "Please enter your phone number." }); return false; }
+        if (formData.monument.length === 0) { toast({ variant: "destructive", title: "Select Monument", description: "Please select at least one monument." }); return false; }
+        return true;
+      case 2:
+        if (formData.themes.length === 0) { toast({ variant: "destructive", title: "Select Theme", description: "Please select at least one tour theme." }); return false; }
+        return true;
+      case 3:
+        if (!formData.country) { toast({ variant: "destructive", title: "Select Country", description: "Please select your country of origin." }); return false; }
+        if (formData.adults < 1) { toast({ variant: "destructive", title: "Invalid Travelers", description: "Please enter at least 1 adult." }); return false; }
+        if (!formData.language) { toast({ variant: "destructive", title: "Select Language", description: "Please select a preferred language." }); return false; }
+        if (!formData.date) { toast({ variant: "destructive", title: "Select Date", description: "Please select a preferred travel date." }); return false; }
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const nextStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (validateStep(step)) {
+      setStep((prev) => Math.min(prev + 1, 4));
+    }
+  };
+  const prevStep = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,8 +228,9 @@ const CustomTourPage: React.FC = () => {
     console.log("Submitting form data:", formData);
 
     try {
-      const response = await axios.post('/api/custom-tour', {
+      const response = await axios.post('/api/custom-tours', {
         ...formData,
+        monuments: formData.monument, // Map frontend 'monument' to backend 'monuments'
         date: formData.date?.toISOString(),
       });
 
@@ -161,21 +245,25 @@ const CustomTourPage: React.FC = () => {
         email: '',
         phone: '',
         countryCode: '+91',
+        country: '',
         monument: [],
         themes: [],
-        travelers: 1,
+        adults: 1,
+        children: 0,
         language: 'english',
         date: undefined,
         vehicle: 'luxury-sedan',
         specialRequests: '',
       });
       setStep(1);
+      setIsSuccess(true);
     } catch (error: any) {
       console.error('Error submitting custom tour request:', error);
+      const serverError = error.response?.data?.error || error.response?.data?.message;
       toast({
         variant: "destructive",
         title: "Submission Failed",
-        description: error.response?.data?.message || "There was an error submitting your request. Please try again.",
+        description: serverError ? `Server Error: ${serverError}` : "There was an error submitting your request. Please try again.",
       });
     } finally {
       setIsSubmitting(false);
@@ -305,19 +393,56 @@ const CustomTourPage: React.FC = () => {
       case 3:
         return (
           <div className="space-y-6">
-            <h2 className="font-playfair text-2xl font-semibold mb-4">Step 3: Tour Preferences</h2>
+            <h2 className="font-playfair text-2xl font-semibold mb-4">Step 3: Traveler Details</h2>
+
             <div className="space-y-2">
-              <Label htmlFor="travelers">Number of Travelers</Label>
-              <Input
-                id="travelers"
-                name="travelers"
-                type="number"
-                value={formData.travelers}
-                onChange={handleInputChange}
-                min={1}
-                required
-              />
+              <Label htmlFor="country">Country of Origin</Label>
+              <Select
+                value={formData.country}
+                onValueChange={(value) => handleSelectChange('country', value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select your country" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px]">
+                  {/* Using the countries list from earlier code or a new one, filtering out PK/BD */}
+                  {countryCodes
+                    .filter(c => !["Pakistan", "Bangladesh"].includes(c.country))
+                    .map((c) => (
+                      <SelectItem key={c.code} value={c.country}>
+                        {c.country}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="adults">Adults</Label>
+                <Input
+                  id="adults"
+                  name="adults"
+                  type="number"
+                  value={formData.adults}
+                  onChange={handleInputChange}
+                  min={1}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="children">Kids (below 8)</Label>
+                <Input
+                  id="children"
+                  name="children"
+                  type="number"
+                  value={formData.children}
+                  onChange={handleInputChange}
+                  min={0}
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="language">Preferred Language</Label>
               <Select
@@ -364,6 +489,8 @@ const CustomTourPage: React.FC = () => {
           </div>
         );
       case 4:
+        const totalTravelers = (formData.adults || 0) + (formData.children || 0);
+
         return (
           <div className="space-y-6">
             <h2 className="font-playfair text-2xl font-semibold mb-4">Step 4: Vehicle & Special Requests</h2>
@@ -377,11 +504,19 @@ const CustomTourPage: React.FC = () => {
                   <SelectValue placeholder="Select a vehicle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="luxury-sedan">Luxury Sedan</SelectItem>
-                  <SelectItem value="suv">SUV</SelectItem>
+                  <SelectItem value="luxury-sedan" disabled={totalTravelers > 3}>
+                    Luxury Sedan {totalTravelers > 3 && "(Max 3 travelers)"}
+                  </SelectItem>
+                  <SelectItem value="suv" disabled={totalTravelers > 5}>
+                    SUV {totalTravelers > 5 && "(Max 5 travelers)"}
+                  </SelectItem>
+                  <SelectItem value="luxury-suv" disabled={totalTravelers > 5}>
+                    Luxury SUV {totalTravelers > 5 && "(Max 5 travelers)"}
+                  </SelectItem>
                   <SelectItem value="van">Van</SelectItem>
                 </SelectContent>
               </Select>
+              {totalTravelers > 5 && <p className="text-xs text-muted-foreground">For groups larger than 5, a Van is required for comfort and luggage.</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="specialRequests">Special Requests</Label>
@@ -400,6 +535,48 @@ const CustomTourPage: React.FC = () => {
     }
   };
 
+
+  // ... (inside render)
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <ThemedNavbar />
+        <div className="flex-grow container-custom py-32 flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-lg text-center"
+          >
+            <Card className="w-full shadow-2xl rounded-xl border-none bg-[#fbf3e4]/95 backdrop-blur-md p-8">
+              <CardContent className="space-y-6">
+                <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-playfair font-bold text-gray-900">Request Submitted!</h2>
+                <p className="text-gray-700 text-lg">
+                  Thank you for planning your journey with Velvitra.
+                </p>
+                <p className="text-gray-600">
+                  Our team has received your request and will be in contact with you within <strong>12-24 hours</strong> to finalize your custom itinerary.
+                </p>
+                <Button
+                  onClick={() => { setIsSuccess(false); setStep(1); }}
+                  className="mt-6 bg-black text-white hover:bg-gray-800"
+                >
+                  Plan Another Tour
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <ThemedNavbar />
@@ -416,23 +593,31 @@ const CustomTourPage: React.FC = () => {
               <CardTitle className="text-3xl font-playfair font-bold text-gray-900 text-center">Plan Your Custom Tour</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-8"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                  }
+                }}
+              >
                 {renderStep()}
 
                 <div className="flex justify-between mt-8">
                   {step > 1 && (
-                    <Button variant="outline" onClick={prevStep} className="bg-white/50 border-gray-400 hover:bg-white">
+                    <Button type="button" variant="outline" onClick={prevStep} className="bg-white/50 border-gray-400 hover:bg-white">
                       <ChevronLeft className="mr-2 h-4 w-4" />
                       Previous
                     </Button>
                   )}
                   {step < 4 ? (
-                    <Button onClick={nextStep} className="ml-auto bg-black text-white hover:bg-gray-800">
+                    <Button type="button" onClick={nextStep} className="ml-auto bg-black text-white hover:bg-gray-800">
                       Next
                       <ChevronRight className="ml-2 h-4 w-4" />
                     </Button>
                   ) : (
-                    <Button type="submit" disabled={isSubmitting} className="ml-auto bg-black text-white hover:bg-gray-800">
+                    <Button type="submit" disabled={isSubmitting || isSubmitDisabled || !formData.vehicle} className="ml-auto bg-black text-white hover:bg-gray-800">
                       {isSubmitting ? "Submitting..." : "Submit Request"}
                     </Button>
                   )}

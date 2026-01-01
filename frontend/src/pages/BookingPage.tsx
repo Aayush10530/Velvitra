@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import AuthModal from "@/components/AuthModal";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -18,6 +20,7 @@ import {
   DialogTrigger,
   DialogContent,
 } from "@/components/ui/dialog";
+
 
 // Tour data (moved from ToursPage for now, should be in a separate data file)
 const tourPackages = [
@@ -364,6 +367,10 @@ function getNights(checkIn, checkOut) {
 const BookingPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  // State Definitions
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [date, setDate] = useState<Date>();
   const [adultCount, setAdultCount] = useState(1);
   const [childCount, setChildCount] = useState(0);
@@ -378,10 +385,12 @@ const BookingPage = () => {
   ]);
   const [originError, setOriginError] = useState(false);
   const [showOriginPopup, setShowOriginPopup] = useState(false);
-  // Add state for selectedCountry and selectedCountryCode
+
+  // Country selection
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedCountryCode, setSelectedCountryCode] = useState("");
-  // Add state for booking form fields at the top of BookingPage
+
+  // Form fields
   const [mainName, setMainName] = useState("");
   const [mainAge, setMainAge] = useState("");
   const [mainDocumentType, setMainDocumentType] = useState("");
@@ -393,37 +402,69 @@ const BookingPage = () => {
   const [mainAgeError, setMainAgeError] = useState("");
   const [mainDocumentTypeError, setMainDocumentTypeError] = useState("");
   const [uploadDocumentError, setUploadDocumentError] = useState("");
+
+  // UI states
   const [showVentureDetails, setShowVentureDetails] = useState(false);
   const [showMohabbatModal, setShowMohabbatModal] = useState(false);
   const [showLanguageInfo, setShowLanguageInfo] = useState(false);
-  // State for Mohabbat-e-Taj booking
+
+  // Mohabbat-e-Taj
   const [mohabbatSeats, setMohabbatSeats] = useState(0);
   const [mohabbatTotal, setMohabbatTotal] = useState(0);
   const [mohabbatDate, setMohabbatDate] = useState("");
+
+  // Tour Date
   const [tourDate, setTourDate] = useState<Date | null>(null);
   const [tourDatePopoverOpen, setTourDatePopoverOpen] = useState(false);
 
-  // Find the tour details from our tour packages
+  // Derived state: Find tour details
   const tourDetails = tourPackages.find(tour => {
-    // Convert both to lowercase and remove any spaces for comparison
     const tourId = tour.id.toLowerCase().replace(/\s+/g, '-');
     const paramId = id?.toLowerCase().replace(/\s+/g, '-');
-    console.log('Comparing tour IDs:', { tourId, paramId, originalId: tour.id, originalParamId: id });
     return tourId === paramId;
   });
 
+  // Effects
   useEffect(() => {
     // Simulate loading state
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 500);
-
-    // Log all available tour IDs for debugging
-    console.log('Available tour IDs:', tourPackages.map(t => t.id));
-    console.log('Current URL param ID:', id);
-
     return () => clearTimeout(timer);
   }, [id]);
+
+  // --- AUTH GUARDS (Must be after all hooks) ---
+
+  // 1. Auth Loading State
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
+      </div>
+    );
+  }
+
+  // 2. Auth Required Check
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <ThemedNavbar />
+        <div className="max-w-md w-full text-center mt-20">
+          <Card className="p-8 shadow-lg">
+            <h2 className="text-2xl font-bold mb-4 font-playfair">Login Required</h2>
+            <p className="text-gray-600 mb-6">Please log in to your account to book this tour.</p>
+            <Button
+              onClick={() => setShowAuthModal(true)}
+              className="w-full bg-black text-white hover:bg-gray-800"
+            >
+              Log In / Sign Up
+            </Button>
+          </Card>
+        </div>
+        <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      </div>
+    );
+  }
 
   const handleAdultCountChange = (increment: boolean) => {
     if (increment) {
@@ -536,7 +577,7 @@ const BookingPage = () => {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Tour Not Found</h1>
           <p className="text-muted-foreground mb-6">The tour you're looking for doesn't exist.</p>
-          <Button 
+          <Button
             onClick={() => navigate('/tours')}
             className="bg-accent hover:bg-accent/90"
           >
@@ -550,7 +591,7 @@ const BookingPage = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <ThemedNavbar />
-      
+
       {/* Hero Section */}
       <div className="relative h-[40vh] bg-gray-900">
         <img
@@ -588,14 +629,14 @@ const BookingPage = () => {
         </div>
       </div>
 
-      <div className="container-custom py-12 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="w-full space-y-8 px-0">
+      <div className="container-custom py-8 md:py-12 flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-full space-y-6 md:space-y-8 px-0">
           <Card className="p-6">
             <h2 className="text-2xl font-playfair font-bold text-gray-900 mb-4">
               Tour Overview
             </h2>
             <p className="text-gray-600 mb-6">{tourDetails.description}</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="flex items-start gap-3">
                 <Clock className="text-accent mt-1" size={20} />
@@ -624,8 +665,8 @@ const BookingPage = () => {
                   <h3 className="font-medium text-gray-900">Tour Type</h3>
                   <p className="text-gray-600">
                     {tourDetails.tags?.includes("best-seller") ? "Best Seller" :
-                     tourDetails.tags?.includes("romantic") ? "Couples Special" :
-                     tourDetails.tags?.includes("special") ? "Special Tour" : "Standard Tour"}
+                      tourDetails.tags?.includes("romantic") ? "Couples Special" :
+                        tourDetails.tags?.includes("special") ? "Special Tour" : "Standard Tour"}
                   </p>
                 </div>
               </div>
@@ -718,7 +759,7 @@ const BookingPage = () => {
               {/* Visitor Count */}
               <div>
                 <label className="block font-semibold mb-2">Select Total No of Visitors</label>
-                <div className="flex gap-8 items-center mb-1">
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 items-start sm:items-center mb-1">
                   <div className="flex items-center gap-2">
                     <span>Adult</span>
                     <Button type="button" variant="outline" size="icon" onClick={() => setAdultCount(Math.max(1, adultCount - 1))}><Minus /></Button>
@@ -895,7 +936,7 @@ const BookingPage = () => {
                             }}
                             className={cn("p-3 pointer-events-auto")}
                             disabled={(date) => !hotelBooking.checkIn || date <= hotelBooking.checkIn}
-                            // Always allow any date after check-in, regardless of current check-out
+                          // Always allow any date after check-in, regardless of current check-out
                           />
                         </PopoverContent>
                       </Popover>
@@ -952,7 +993,7 @@ const BookingPage = () => {
               <div className="mb-4">
                 <h3 className="text-lg font-semibold mb-1">Mohabbat-e-Taj: Agra’s Finest Cultural Performance</h3>
                 <p className="text-gray-700 mb-2">
-                  Experience Agra’s most enchanting theatrical spectacle as the timeless love story of Shah Jahan and Mumtaz Mahal comes alive on stage.<br/>
+                  Experience Agra’s most enchanting theatrical spectacle as the timeless love story of Shah Jahan and Mumtaz Mahal comes alive on stage.<br />
                   A grand cultural evening of music, dance, and regal Mughal elegance at the Kalakriti Theatre.
                 </p>
                 {mohabbatTotal > 0 && mohabbatSeats > 0 ? (
@@ -985,13 +1026,13 @@ const BookingPage = () => {
                 </div>
                 {/* Right: Form */}
                 <div className="md:w-1/2 w-full">
-                  <div className="bg-accent text-accent-foreground py-6 px-8 flex flex-col md:flex-row md:items-center md:justify-between">
-                    <h2 className="text-4xl font-playfair font-bold drop-shadow tracking-wide mb-2 md:mb-0">Mohabbat The Taj (06:45 PM)</h2>
+                  <div className="bg-accent text-accent-foreground py-6 px-4 md:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
+                    <h2 className="text-2xl md:text-4xl font-playfair font-bold drop-shadow tracking-wide mb-2 md:mb-0">Mohabbat The Taj (06:45 PM)</h2>
                     <span className="text-xl font-montserrat font-semibold bg-gold/10 text-white px-4 py-2 rounded-lg shadow-sm">$78 <span className="text-base font-normal">per person</span></span>
                   </div>
-                  <form className="p-8 space-y-6 bg-white">
+                  <form className="p-4 md:p-8 space-y-6 bg-white">
                     <div className="flex items-center border rounded px-4 py-3 mb-2 bg-gray-50">
-                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2"/><path d="M17 7H5M9 11h4" strokeWidth="2"/></svg></span>
+                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2" /><path d="M17 7H5M9 11h4" strokeWidth="2" /></svg></span>
                       <input
                         type="date"
                         className="w-full bg-transparent outline-none font-montserrat text-lg"
@@ -1001,18 +1042,18 @@ const BookingPage = () => {
                       />
                     </div>
                     <div className="flex items-center border rounded px-4 py-3 mb-2 bg-gray-50">
-                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2"/><path d="M10 7v8M7 10h8" strokeWidth="2"/></svg></span>
+                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2" /><path d="M10 7v8M7 10h8" strokeWidth="2" /></svg></span>
                       <select
                         className="w-full bg-transparent outline-none font-montserrat text-lg"
                         value={mohabbatSeats || ''}
                         onChange={e => setMohabbatSeats(Number(e.target.value))}
                       >
                         <option value="">Select No. of Seats</option>
-                        {[...Array(10)].map((_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
+                        {[...Array(10)].map((_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
                       </select>
                     </div>
                     <div className="flex items-center border rounded px-4 py-3 mb-2 bg-gray-50">
-                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2"/><path d="M7 11h8" strokeWidth="2"/></svg></span>
+                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2" /><path d="M7 11h8" strokeWidth="2" /></svg></span>
                       <select className="w-full bg-transparent outline-none font-montserrat text-lg" onChange={handleLanguageChange}>
                         <option>-- Select Language --</option>
                         <option>English</option>
@@ -1024,7 +1065,7 @@ const BookingPage = () => {
                       </select>
                     </div>
                     <div className="flex items-center border rounded px-4 py-3 mb-2 bg-gray-50">
-                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2"/><path d="M7 11h8" strokeWidth="2"/></svg></span>
+                      <span className="mr-3 text-gray-400"><svg width="22" height="22" fill="none" stroke="currentColor"><rect width="16" height="16" x="3" y="3" rx="2" strokeWidth="2" /><path d="M7 11h8" strokeWidth="2" /></svg></span>
                       <input className="w-full bg-transparent outline-none font-montserrat text-lg" value="Category: Maharaja" disabled />
                     </div>
                     <button
@@ -1049,7 +1090,7 @@ const BookingPage = () => {
           <Dialog open={showLanguageInfo} onOpenChange={setShowLanguageInfo}>
             <DialogContent className="max-w-md w-full p-0 bg-background rounded-2xl overflow-hidden shadow-2xl border border-gold">
               <div className="p-8 text-center">
-                <h2 className="text-xl font-playfair font-bold mb-4 text-accent-foreground">Language interpretation facility will be provided by Ear Phones only.<br/>Live show is in Hindi+Urdu.</h2>
+                <h2 className="text-xl font-playfair font-bold mb-4 text-accent-foreground">Language interpretation facility will be provided by Ear Phones only.<br />Live show is in Hindi+Urdu.</h2>
                 <Button className="btn-primary text-lg font-playfair px-8 py-2 mt-4" onClick={() => setShowLanguageInfo(false)}>OK</Button>
               </div>
             </DialogContent>
