@@ -18,6 +18,9 @@ FROM nginx:alpine
 # Copy built assets to Nginx html directory
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copy custom Nginx config for SPA support
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Expose port 80
 EXPOSE 80
 
