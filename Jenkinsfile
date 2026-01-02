@@ -26,7 +26,7 @@ pipeline {
                     
                     echo 'Building Frontend Image...'
                     // Pass the API URL arg. Port 5001 matches K8s LoadBalancer.
-                    sh 'docker build --build-arg VITE_API_BASE_URL=/api -t velvitra-frontend:latest ./frontend'
+                    sh 'docker build --build-arg VITE_API_BASE_URL=/api --build-arg VITE_SUPABASE_URL=https://ewscfpbtmdbarkrdffjj.supabase.co --build-arg VITE_SUPABASE_ANON_KEY=sb_publishable_exUHP1n_FwHAUlJitq3_mg_dS0NcF1n -t velvitra-frontend:latest ./frontend'
                 }
             }
         }
