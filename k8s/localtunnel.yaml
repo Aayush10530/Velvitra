@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localtunnel
+  labels:
+    app: localtunnel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localtunnel
+  template:
+    metadata:
+      labels:
+        app: localtunnel
+    spec:
+      containers:
+        - name: localtunnel
+          image: node:20-alpine
+          command: ["sh", "-c"]
+          args:
+            - "npm install -g localtunnel && lt --port 80 --local-host frontend --subdomain velvitra"
